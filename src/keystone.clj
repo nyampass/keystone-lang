@@ -3,10 +3,13 @@
 
 (def as-and-bs
   (insta/parser
-   "S = AB*
-     AB = A B
-     A = 'a'+
-     B = 'b'+"))
+   "S = expr
+    expr = term (('+' | '-') term)*
+    term = fact (('*' | '/') fact)*
+    fact = ws* <'('> ws* expr ws* <')'> ws* | ws* ('+' | '-') ws* fact ws* | ws* number ws*
+    <number> = #'[0-9]+'
+    whitespace = (' ' | '\t')
+    <ws> = <whitespace>"))
 
 (defn run [args]
   (println args)
