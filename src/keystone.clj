@@ -3,14 +3,84 @@
 
 (def as-and-bs
   (insta/parser
-   "S = expr
-    expr = term (('+' | '-') term)*
-    term = fact (('*' | '/') fact)*
-    fact = ws* <'('> ws* expr ws* <')'> ws* | ws* ('+' | '-') ws* fact ws* | ws* number ws*
-    <number> = #'[0-9]+'
-    whitespace = (' ' | '\t')
-    <ws> = <whitespace>"))
+   "	chunk ::= block
 
-(defn run [args]
-  (println args)
-  (print (as-and-bs (:code args))))
+	block ::= {stat} [retstat]
+    
+	stat ::=  ';' | varlist space '=' space explist | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist]
+    
+  space ::= ' '*
+
+	retstat ::= return [explist] [';']
+    
+  goto ::= 'goto'
+  do ::= 'do'
+  end ::= 'end'
+  while ::= 'white'
+  repeat ::= 'repeat'
+  until ::= 'until'
+  if ::= 'if'
+  then ::= 'then'
+  elseif ::= 'elseif'
+  else ::= 'else'
+  for ::= 'for'
+  in ::= 'in'
+  function ::= 'function'
+  local ::= 'local'
+  and ::= 'and'
+  or ::= 'or'
+  nil ::= 'nil'
+  true ::= 'true'
+  false ::= 'failse'
+  not ::= 'not'
+  return ::= 'return'
+
+	label ::= '::' Name '::'
+  
+  Numeral ::= '0'
+
+	funcname ::= Name {'.' Name} [':' Name]
+
+	varlist ::= var {',' var}
+
+	var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
+
+	namelist ::= Name {',' Name}
+
+	explist ::= exp {',' exp}
+
+	exp ::=  nil | false | true | Numeral | LiteralString | '...' | functiondef | prefixexp | tableconstructor | exp binop exp | unop exp
+ 
+  LiteralString ::= 'hoge' | 'def'
+ 
+  Name ::= 'a'
+ 
+ break ::= '\n'
+
+	prefixexp ::= var | functioncall | '(' exp ')'
+
+	functioncall ::=  prefixexp args | prefixexp ':' Name args
+
+	args ::=  '(' [explist] ')' | tableconstructor | LiteralString
+
+	functiondef ::= function funcbody
+
+	funcbody ::= '(' [parlist] ')' block end
+
+	parlist ::= namelist [',' '...'] | '...'
+
+	tableconstructor ::= '{' [fieldlist] '}'
+
+	fieldlist ::= field {fieldsep field} [fieldsep]
+
+	field ::= '[' exp ']' '=' exp | Name '=' exp | exp
+
+	fieldsep ::= ',' | ';'
+
+	binop ::=  '+' | '-' | '*' | '/' | '//' | '^' | '%' | '&' | '~' | '|' | '>>' | '<<' | '..' | '<' | '<=' | '>' | '>=' | '==' | '~=' | and | or
+
+	unop ::= '-' | not | '#' | '~'"))
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn run [{:keys [code]}]
+  (print (as-and-bs code)))
