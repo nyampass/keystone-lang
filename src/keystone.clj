@@ -3,16 +3,14 @@
 
 (def as-and-bs
   (insta/parser
-   "	chunk ::= block
+   "chunk ::= block
 
-	block ::= {stat} [retstat]
-    
-	stat ::=  ';' | varlist space '=' space explist | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist]
-    
-  space ::= ' '*
+	block ::= {stat}
 
-	retstat ::= return [explist] [';']
+  stat ::=  ( varlist <space> '=' <space> explist | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist] ) '\n'
     
+  <space> ::= #\"\\s*\"
+
   goto ::= 'goto'
   do ::= 'do'
   end ::= 'end'
@@ -37,7 +35,7 @@
 
 	label ::= '::' Name '::'
   
-  Numeral ::= '0'
+  Numeral ::= #\"\\d\"
 
 	funcname ::= Name {'.' Name} [':' Name]
 
@@ -53,9 +51,9 @@
  
   LiteralString ::= 'hoge' | 'def'
  
-  Name ::= 'a'
+  Name ::= #\"[a-zA-Z]\\w*\"
  
- break ::= '\n'
+  break ::= '\n'
 
 	prefixexp ::= var | functioncall | '(' exp ')'
 
