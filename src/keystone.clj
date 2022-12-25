@@ -79,6 +79,10 @@
 
 	unop ::= '-' | not | '#' | '~'"))
 
+(defn parse [str]
+  (prn str)
+  (as-and-bs str))
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]
   (print (as-and-bs code)))

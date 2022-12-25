@@ -1,0 +1,5 @@
+move "right"
+move "right"
+move "left"
+move "up"
+move "down"
