@@ -3,13 +3,15 @@
 
 (def as-and-bs
   (insta/parser
-   "chunk ::= block
+   "S ::= block
 
-	block ::= {stat}
+  block ::= {stat}
 
-  stat ::=  ( varlist <space> '=' <space> explist | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist] ) '\n'
-    
+  stat ::=  ( varlist <space> '=' <space> explist | func <space> exp <space> | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist] ) '\n'*
+  
   <space> ::= #\"\\s*\"
+    
+  func ::= 'print'
 
   goto ::= 'goto'
   do ::= 'do'
@@ -49,7 +51,7 @@
 
 	exp ::=  nil | false | true | Numeral | LiteralString | '...' | functiondef | prefixexp | tableconstructor | exp binop exp | unop exp
  
-  LiteralString ::= 'hoge' | 'def'
+  LiteralString ::= '\"' Name '\"'
  
   Name ::= #\"[a-zA-Z]\\w*\"
  
@@ -80,8 +82,8 @@
 	unop ::= '-' | not | '#' | '~'"))
 
 (defn parse [str]
-  (prn str)
-  (as-and-bs str))
+  (let [[_ & [blocks]] (as-and-bs str)]
+    blocks))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]
