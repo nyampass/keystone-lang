@@ -10,8 +10,9 @@
   
   <space> ::= #\"\\s*\"
     
-  op ::= print <space> exp <space> 
+  op ::= ( print | move ) <space> exp <space> 
   print ::= 'print'
+  move ::= 'move'
 
   goto ::= 'goto'
   do ::= 'do'
