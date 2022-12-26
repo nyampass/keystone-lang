@@ -1,17 +1,17 @@
 (ns keystone
   (:require [instaparse.core :as insta]))
 
-(def as-and-bs
+(def parser
   (insta/parser
    "S ::= block
-
   block ::= {stat}
 
-  stat ::=  ( varlist <space> '=' <space> explist | func <space> exp <space> | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist] ) '\n'*
+  <stat> ::= ( varlist <space> '=' <space> explist | op | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist] ) '\n'*
   
   <space> ::= #\"\\s*\"
     
-  func ::= 'print'
+  op ::= print <space> exp <space> 
+  print ::= 'print'
 
   goto ::= 'goto'
   do ::= 'do'
@@ -49,9 +49,9 @@
 
 	explist ::= exp {',' exp}
 
-	exp ::=  nil | false | true | Numeral | LiteralString | '...' | functiondef | prefixexp | tableconstructor | exp binop exp | unop exp
+	<exp> ::=  nil | false | true | Numeral | literal-string | '...' | functiondef | prefixexp | tableconstructor | exp binop exp | unop exp
  
-  LiteralString ::= '\"' Name '\"'
+  literal-string ::= '\"' #\"[^\\\"]+\" '\"'
  
   Name ::= #\"[a-zA-Z]\\w*\"
  
@@ -61,7 +61,7 @@
 
 	functioncall ::=  prefixexp args | prefixexp ':' Name args
 
-	args ::=  '(' [explist] ')' | tableconstructor | LiteralString
+	args ::=  '(' [explist] ')' | tableconstructor | literal-string
 
 	functiondef ::= function funcbody
 
@@ -82,9 +82,21 @@
 	unop ::= '-' | not | '#' | '~'"))
 
 (defn parse [str]
-  (let [[_ & [blocks]] (as-and-bs str)]
-    blocks))
+  (let [[_ & [stats]] (parser str)]
+    stats))
+
+(defn -op [[op-name] & args]
+  ;; (prn :op args)
+  {:op op-name :args args})
+
+(defn -literal-string [& [_ args _]]
+  (prn :literal :args args)
+  args)
+
+(defn transform [stats]
+  (insta/transform {:block (fn [& args] args)
+                    :op -op :literal-string -literal-string} stats))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]
-  (print (as-and-bs code)))
+  (print (parse code)))
