@@ -3,10 +3,10 @@
 
 (def parser
   (insta/parser
-   "S ::= block
-  block ::= {stat}
-
-  <stat> ::= ( varlist <space> '=' <space> explist | op | functioncall | label | break | goto Name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for Name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function Name funcbody | local namelist ['=' explist] ) '\n'*
+   "s ::= block
+    block ::= {stat}
+    
+    <stat> ::= ( var <space> '=' <space> exp | op | functioncall | label | goto name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) '\n'*
   
   <space> ::= #\"\\s*\"
     
@@ -36,17 +36,17 @@
   not ::= 'not'
   return ::= 'return'
 
-	label ::= '::' Name '::'
+	label ::= '::' name '::'
   
   Numeral ::= #\"\\d\"
 
-	funcname ::= Name {'.' Name} [':' Name]
+	funcname ::= name {'.' name} [':' name]
 
 	varlist ::= var {',' var}
 
-	var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
+	var ::=  name | prefixexp '[' exp ']' | prefixexp '.' name
 
-	namelist ::= Name {',' Name}
+	namelist ::= name {',' name}
 
 	explist ::= exp {',' exp}
 
@@ -54,13 +54,11 @@
  
   literal-string ::= '\"' #\"[^\\\"]+\" '\"'
  
-  Name ::= #\"[a-zA-Z]\\w*\"
+  name ::= #\"[a-zA-Z]\\w*\"
  
-  break ::= '\n'
-
 	prefixexp ::= var | functioncall | '(' exp ')'
 
-	functioncall ::=  prefixexp args | prefixexp ':' Name args
+	functioncall ::=  prefixexp args | prefixexp ':' name args
 
 	args ::=  '(' [explist] ')' | tableconstructor | literal-string
 
@@ -74,7 +72,7 @@
 
 	fieldlist ::= field {fieldsep field} [fieldsep]
 
-	field ::= '[' exp ']' '=' exp | Name '=' exp | exp
+	field ::= '[' exp ']' '=' exp | name '=' exp | exp
 
 	fieldsep ::= ',' | ';'
 
