@@ -1,18 +1,21 @@
 (ns keystone
-  (:require [instaparse.core :as insta]))
+  (:require [instaparse.core :as insta]
+            [clojure.core :refer [parse-long]]))
+
 
 (def parser
   (insta/parser
    "s ::= block
     block ::= {stat}
     
-    <stat> ::= ( var <space> '=' <space> exp | op | functioncall | label | goto name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) '\n'*
+    <stat> ::= ( define | op | functioncall | label | goto name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
   
   <space> ::= #\"\\s*\"
     
   op ::= ( print | move ) <space> exp <space> 
   print ::= 'print'
   move ::= 'move'
+	define ::=  name <space> '=' <space> exp
 
   goto ::= 'goto'
   do ::= 'do'
@@ -32,33 +35,27 @@
   or ::= 'or'
   nil ::= 'nil'
   true ::= 'true'
-  false ::= 'failse'
+  false ::= 'false'
   not ::= 'not'
   return ::= 'return'
 
 	label ::= '::' name '::'
   
-  Numeral ::= #\"\\d\"
+  numeral ::= #\"\\d\"
 
 	funcname ::= name {'.' name} [':' name]
-
-	varlist ::= var {',' var}
-
-	var ::=  name | prefixexp '[' exp ']' | prefixexp '.' name
 
 	namelist ::= name {',' name}
 
 	explist ::= exp {',' exp}
 
-	<exp> ::=  nil | false | true | Numeral | literal-string | '...' | functiondef | prefixexp | tableconstructor | exp binop exp | unop exp
+	<exp> ::=  name | nil | false | true | numeral | literal-string | '...' | functiondef | tableconstructor | exp binop exp | unop exp
  
   literal-string ::= '\"' #\"[^\\\"]+\" '\"'
  
   name ::= #\"[a-zA-Z]\\w*\"
  
-	prefixexp ::= var | functioncall | '(' exp ')'
-
-	functioncall ::=  prefixexp args | prefixexp ':' name args
+functioncall ::=  name args
 
 	args ::=  '(' [explist] ')' | tableconstructor | literal-string
 
@@ -82,19 +79,33 @@
 
 (defn parse [str]
   (let [[_ & [stats]] (parser str)]
+    (print :parse parse)
     stats))
 
 (defn -op [[op-name] & args]
   ;; (prn :op args)
   {:op op-name :args args})
 
+(defn -define [& [[_ name] _ val]]
+  {:op :define :args (list name val)})
+
+(defn -name [& args]
+  (prn :-name args)
+  [:name (keyword (first args))])
+
 (defn -literal-string [& [_ args _]]
-  (prn :literal :args args)
   args)
+
+(defn -numeral [& [val]]
+  (parse-long val))
 
 (defn transform [stats]
   (insta/transform {:block (fn [& args] args)
-                    :op -op :literal-string -literal-string} stats))
+                    :op -op
+                    :define -define
+                    :name -name
+                    :literal-string -literal-string
+                    :numeral -numeral} stats))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]
