@@ -8,7 +8,7 @@
    "s ::= block
     block ::= {stat}
     
-    <stat> ::= ( define | op | functioncall | label | goto name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
+    <stat> ::= <space> ( define | op | loop | functioncall | label | goto name | do block end | while exp do block end | repeat block until exp | if exp then block {elseif exp then block} [else block] end | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
   
   <space> ::= #\"\\s*\"
     
@@ -16,6 +16,7 @@
   print ::= 'print'
   move ::= 'move'
 	define ::=  name <space> '=' <space> exp
+  loop ::= 'loop' <space> exp <space> <'\n'*> block  <'\n'*> end  <'\n'*>
 
   goto ::= 'goto'
   do ::= 'do'
@@ -78,19 +79,18 @@ functioncall ::=  name args
 	unop ::= '-' | not | '#' | '~'"))
 
 (defn parse [str]
+  (prn (parser str))
   (let [[_ & [stats]] (parser str)]
     (print :parse parse)
     stats))
 
 (defn -op [[op-name] & args]
-  ;; (prn :op args)
   {:op op-name :args args})
 
 (defn -define [& [[_ name] _ val]]
   {:op :define :args (list name val)})
 
 (defn -name [& args]
-  (prn :-name args)
   [:name (keyword (first args))])
 
 (defn -literal-string [& [_ args _]]
