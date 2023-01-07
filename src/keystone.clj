@@ -13,8 +13,8 @@
   print ::= 'print'
   move ::= 'move'
 	define ::=  name <space> '=' <space> exp
-  loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> end
-  if ::= 'if' <space> exp <space> <'\n'*> block end
+  loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
+  if ::= 'if' <space> exp <space> <'\n'*> block <end>
 
   goto ::= 'goto'
   do ::= 'do'
