@@ -88,7 +88,7 @@ functioncall ::=  name args
 (defn -numeral [& [val]]
   (parse-long val))
 
-(defn -loop [_ cond & args]
+(defn -loop [_ cond & [args]]
   (prn :-loop args)
   {:op :loop  :condition cond :args args})
 
