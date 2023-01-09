@@ -14,7 +14,7 @@
   move ::= 'move'
 	define ::=  name <space> '=' <space> exp
   loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
-  if ::= 'if' <space> exp <space> <'\n'*> block <end>
+  if ::= 'if' <space> exp <space> <'\n'*> block <'\n'*> <end>
 
   goto ::= 'goto'
   do ::= 'do'
@@ -89,12 +89,11 @@ functioncall ::=  name args
   (parse-long val))
 
 (defn -loop [_ cond & [args]]
-  (prn :-loop args)
   {:op :loop  :condition cond :args args})
 
-(defn -if [& args]
+(defn -if [_ cond & [args]]
   (prn :-if args)
-  args)
+  {:op :if :condition cond :args args})
 
 (defn transform [stats]
   (insta/transform {:block (fn [& args] args)
@@ -103,7 +102,8 @@ functioncall ::=  name args
                     :name -name
                     :literal-string -literal-string
                     :numeral -numeral
-                    :loop -loop} stats))
+                    :loop -loop
+                    :if -if} stats))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]

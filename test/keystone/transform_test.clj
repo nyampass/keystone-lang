@@ -31,5 +31,5 @@
   (let [stats (parse (slurp "./resources/05_if.ks"))]
     (print stats)
     (is (= (transform stats)
-           [{:op :define :args '(:a 1)}
-            {:op :if :condition '([:op :> '(args :a 3)]) :args '(:a)}]))))
+           [{:op :define :args (list :a 1)}
+            {:op :if :condition '([:op :> '(args :a 3)]) :args '({:op :print :args (list [:name :a])})}]))))
