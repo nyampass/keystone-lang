@@ -47,7 +47,7 @@
 
 	explist ::= exp {',' exp}
 
-	<exp> ::=  name | nil | false | true | numeral | literal-string | '...' | functiondef | exp <space> binop <space> exp | unop exp
+	exp ::=  exp <space> binop <space> exp | unop exp | name | nil | false | true | numeral | literal-string | '...' | functiondef
  
   literal-string ::= '\"' #\"[^\\\"]+\" '\"'
  
@@ -68,19 +68,28 @@ functioncall ::=  name args
 	unop ::= '-' | not | '#' | '~'"))
 
 (defn parse [str]
-  (prn (parser str))
   (let [[_ & [stats]] (parser str)]
-    (print :parse parse)
     stats))
 
 (defn -op [[op-name] & args]
   {:op op-name :args args})
 
-(defn -define [& [[_ name] _ val]]
-  {:op :define :args (list name val)})
+(defn -define [& args]
+  (let [[[_ name] _ val] args]
+    (prn :-define args name val)
+    {:op :define :args (list name val)}))
 
 (defn -name [& args]
   [:name (keyword (first args))])
+
+(defn -exp [& args]
+  (prn :-exp args)
+  (if (= (count args) 1)
+    (first args)
+    (if (and (= (count args) 3)
+             (= (-> args second first) :binop))
+      {:op (-> args second second keyword) :args (list (first args) (nth args 2))}
+      {:exp args})))
 
 (defn -literal-string [& [_ args _]]
   args)
@@ -91,8 +100,8 @@ functioncall ::=  name args
 (defn -loop [_ cond & [args]]
   {:op :loop  :condition cond :args args})
 
-(defn -if [_ cond & [args]]
-  (prn :-if args)
+(defn -if [_ cond & args]
+  (prn :-if cond args)
   {:op :if :condition cond :args args})
 
 (defn transform [stats]
@@ -100,6 +109,7 @@ functioncall ::=  name args
                     :op -op
                     :define -define
                     :name -name
+                    :exp -exp
                     :literal-string -literal-string
                     :numeral -numeral
                     :loop -loop
