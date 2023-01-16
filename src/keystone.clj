@@ -100,7 +100,7 @@ functioncall ::=  name args
 (defn -loop [_ cond & [args]]
   {:op :loop  :condition cond :args args})
 
-(defn -if [_ cond & args]
+(defn -if [_ cond & [args]]
   (prn :-if cond args)
   {:op :if :condition cond :args args})
 
