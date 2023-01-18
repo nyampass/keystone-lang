@@ -115,6 +115,10 @@ functioncall ::=  name args
                     :loop -loop
                     :if -if} stats))
 
+(defn eval [codes]
+  (prn :eval codes)
+  codes)
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]
   (print (parse code)))
