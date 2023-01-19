@@ -22,10 +22,11 @@
             {:op :move :args (list [:name :c])}]))))
 
 (testing "loop"
-  (let [stats (parse (slurp "./resources/04_loop.ks"))]
-    (print stats)
-    (is (= (transform stats)
-           [{:op :loop :condition 3 :args (list {:op :print :args '("hoge")})}]))))
+  (let [res (-> (slurp "./resources/04_loop.ks") parse transform eval)]
+    (is (= res
+           [{:op :print :args '("hoge")}
+            {:op :print :args '("hoge")}
+            {:op :print :args '("hoge")}]))))
 
 (testing "if"
   (let [stats (parse (slurp "./resources/05_if.ks"))]
