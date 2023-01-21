@@ -76,14 +76,12 @@ functioncall ::=  name args
 
 (defn -define [& args]
   (let [[[_ name] _ val] args]
-    (prn :-define args name val)
     {:op :define :args (list name val)}))
 
 (defn -name [& args]
   [:name (keyword (first args))])
 
 (defn -exp [& args]
-  (prn :-exp args)
   (if (= (count args) 1)
     (first args)
     (if (and (= (count args) 3)
@@ -101,7 +99,6 @@ functioncall ::=  name args
   {:op :loop  :condition cond :args args})
 
 (defn -if [_ cond & [args]]
-  (prn :-if cond args)
   {:op :if :condition cond :args args})
 
 (defn transform [stats]
@@ -115,9 +112,22 @@ functioncall ::=  name args
                     :loop -loop
                     :if -if} stats))
 
-(defn eval [codes]
-  (prn :eval codes)
-  codes)
+(defn eval-exp [args env]
+  (if (= (count args) 2)))
+
+(defn eval
+  ([codes] (eval codes {}))
+  ([[code & rest] env]
+   (if code
+     (let [{:keys [op args]} code]
+       (prn :op op :args args :env env :code code)
+       (condp = op
+         :define (let [[name val] args]
+                   (eval rest (assoc env name val)))
+         :print (eval-exp args env)
+         (concat [code] (eval rest env))))
+     nil)))
+
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]

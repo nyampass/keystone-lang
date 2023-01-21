@@ -14,12 +14,9 @@
 (testing "variable"
   (let [res (-> (slurp "./resources/03_variable.ks") parse transform eval)]
     (is (= res
-           [{:op :define :args (list :a 1)}
-            {:op :define :args (list :b "def")}
-            {:op :print :args (list [:name :a])}
-            {:op :print :args (list [:name :b])}
-            {:op :define :args (list :c "left")}
-            {:op :move :args (list [:name :c])}]))))
+           [{:op :print :args (list 1)}
+            {:op :print :args (list "def")}
+            {:op :move :args (list "left")}]))))
 
 (testing "loop"
   (let [res (-> (slurp "./resources/04_loop.ks") parse transform eval)]
