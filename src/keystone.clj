@@ -113,25 +113,35 @@ functioncall ::=  name args
                     :if -if} stats))
 
 (defn eval-exp [args env]
-  (if (and (= (count args) 2)
-           (= (first args) :name))
-    ((first args) env)
-    args))
+  (prn :eval-exp args env)
+  (map
+   #(if (and (= (count %) 2)
+             (= (first %) :name))
+      ((second %) env)
+      %)
+   args))
 
 (defn eval
   ([codes]
-   (do
-     (prn :eval (flatten (eval codes {})))
-     (flatten (eval codes {}))))
+   (prn :eval2 (eval codes {}))
+   (prn :eval (flatten (eval codes {})))
+   (flatten (eval codes {})))
   ([[code & rest] env]
+   (prn :eval3 code rest env)
    (when code
      (let [{:keys [op args]} code]
        (prn :op op :args args :env env :code code)
        (condp = op
          :define (let [[name val] args]
                    (eval rest (assoc env name val)))
-         :print [{:op :print :args (eval-exp args env)}]
+         :print (concat [{:op :print :args (eval-exp args env)}] (eval rest env))
+         :move (concat [{:op :move :args (eval-exp args env)}] (eval rest env))
          (concat [code] (eval rest env)))))))
+
+
+
+  ;; (let [res (-> (slurp "./resources/03_variable.ks") parse transform eval)]
+  ;;   (prn :res res))
 
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
