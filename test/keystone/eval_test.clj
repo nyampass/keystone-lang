@@ -13,6 +13,7 @@
 
 (testing "variable"
   (let [res (-> (slurp "./resources/03_variable.ks") parse transform eval)]
+    (prn :res res)
     (is (= res
            [{:op :print :args (list 1)}
             {:op :print :args (list "def")}
