@@ -115,7 +115,8 @@ functioncall ::=  name args
 (defn eval-exp [args env]
   (prn :eval-exp args env)
   (map
-   #(if (and (= (count %) 2)
+   #(if (and (vector? %)
+             (=  (count %) 2)
              (= (first %) :name))
       ((second %) env)
       %)
@@ -123,25 +124,34 @@ functioncall ::=  name args
 
 (defn eval
   ([codes]
-   (prn :eval2 (eval codes {}))
-   (prn :eval (flatten (eval codes {})))
+  ;;  (prn :eval2 (eval codes {}))
+  ;;  (prn :eval (flatten (eval codes {})))
    (flatten (eval codes {})))
   ([[code & rest] env]
-   (prn :eval3 code rest env)
+  ;;  (prn :eval3 code rest env)
    (when code
-     (let [{:keys [op args]} code]
+     (let [{:keys [op condition args]} code]
        (prn :op op :args args :env env :code code)
        (condp = op
          :define (let [[name val] args]
                    (eval rest (assoc env name val)))
          :print (concat [{:op :print :args (eval-exp args env)}] (eval rest env))
          :move (concat [{:op :move :args (eval-exp args env)}] (eval rest env))
+         :loop (if (number? condition)
+                 (do
+                   (prn :for rest env (for [_ (range condition)]
+                                        (eval args env)))
+                   (for [_ (range condition)]
+                     (eval args env)))
+                 (eval rest env))
          (concat [code] (eval rest env)))))))
 
+;; (eval [{:op :loop :condition 3 :args (list {:op :print :args (list 3)})}])
 
 
-  ;; (let [res (-> (slurp "./resources/03_variable.ks") parse transform eval)]
-  ;;   (prn :res res))
+(let [res (-> (slurp "./resources/04_loop.ks") parse transform eval)]
+  (prn :res res))
+
 
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
