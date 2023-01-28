@@ -112,47 +112,43 @@ functioncall ::=  name args
                     :loop -loop
                     :if -if} stats))
 
-(defn eval-exp [args env]
-  (prn :eval-exp args env)
-  (map
-   #(if (and (vector? %)
-             (=  (count %) 2)
-             (= (first %) :name))
-      ((second %) env)
-      %)
-   args))
+(defn eval-exp [arg env]
+  (if (and (vector? arg)
+           (=  (count arg) 2)
+           (= (first arg) :name))
+    ((second arg) env)
+    arg))
+
+(defn eval-exps [args env]
+  (map #(eval-exp % env)
+       args))
+
+(defn eval-cond [{:keys [op args]} env]
+  (condp = op
+    :> (> (eval-exp (first args) env)
+          (eval-exp (second args) env))))
+
+(eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
+
+
 
 (defn eval
   ([codes]
-  ;;  (prn :eval2 (eval codes {}))
-  ;;  (prn :eval (flatten (eval codes {})))
    (flatten (eval codes {})))
   ([[code & rest] env]
-  ;;  (prn :eval3 code rest env)
    (when code
      (let [{:keys [op condition args]} code]
-       (prn :op op :args args :env env :code code)
        (condp = op
          :define (let [[name val] args]
                    (eval rest (assoc env name val)))
-         :print (concat [{:op :print :args (eval-exp args env)}] (eval rest env))
-         :move (concat [{:op :move :args (eval-exp args env)}] (eval rest env))
+         :print (concat [{:op :print :args (eval-exps args env)}] (eval rest env))
+         :move (concat [{:op :move :args (eval-exps args env)}] (eval rest env))
          :loop (if (number? condition)
-                 (do
-                   (prn :for rest env (for [_ (range condition)]
-                                        (eval args env)))
-                   (for [_ (range condition)]
-                     (eval args env)))
+                 (for [_ (range condition)]
+                   (eval args env))
                  (eval rest env))
+         :if (concat (eval args env) (eval rest env))
          (concat [code] (eval rest env)))))))
-
-;; (eval [{:op :loop :condition 3 :args (list {:op :print :args (list 3)})}])
-
-
-(let [res (-> (slurp "./resources/04_loop.ks") parse transform eval)]
-  (prn :res res))
-
-
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]

@@ -23,15 +23,13 @@
 
 (testing "loop"
   (let [stats (parse (slurp "./resources/04_loop.ks"))]
-    (print stats)
     (is (= (transform stats)
            [{:op :loop :condition 3 :args (list {:op :print :args '("hoge")})}]))))
 
 (testing "if"
   (let [stats (parse (slurp "./resources/05_if.ks"))]
-    (prn :stats stats)
     (is (= (transform stats)
-           [{:op :define :args (list :a 1)}
+           [{:op :define :args (list :a 5)}
             {:op :if :condition {:op :> :args (list [:name :a] 3)} :args
              (list {:op :print :args (list "abc")}
                    {:op :define :args (list :a {:op :- :args (list [:name :a] 2)})})}]))))
