@@ -30,3 +30,7 @@
     (is (= res
            [{:op :print :args (list "abc")}]))))
 
+(testing "mix"
+  (let [res (-> (slurp "./resources/06_mix.ks") parse transform eval)]
+    (is (= res
+           [{:op :print :args (list "abc")}]))))
