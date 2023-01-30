@@ -39,7 +39,7 @@
 
 	label ::= '::' name '::'
   
-  numeral ::= #\"\\d\"
+  numeral ::= #\"\\d+\"
 
 	funcname ::= name {'.' name} [':' name]
 
