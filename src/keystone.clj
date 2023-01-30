@@ -53,7 +53,7 @@
  
   name ::= #\"[a-zA-Z]\\w*\"
  
-functioncall ::=  name args
+  functioncall ::=  name args
 
 	args ::=  '(' [explist] ')' | literal-string
 
@@ -67,9 +67,14 @@ functioncall ::=  name args
 
 	unop ::= '-' | not | '#' | '~'"))
 
+
 (defn parse [str]
-  (let [[_ & [stats]] (parser str)]
-    stats))
+  (let [ret (parser str)]
+    (if (not (insta/failure? ret))
+      (let [[_ & [stats]] ret]
+        stats)
+      (let [failure (insta/get-failure ret)]
+        (throw  (ex-info (prn-str failure) {:failure ret}))))))
 
 (defn -op [[op-name] & args]
   {:op op-name :args args})
@@ -128,9 +133,7 @@ functioncall ::=  name args
     :> (> (eval-exp (first args) env)
           (eval-exp (second args) env))))
 
-(eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
-
-
+;; (eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
 
 (defn eval
   ([codes]
