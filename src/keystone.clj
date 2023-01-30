@@ -136,28 +136,25 @@
       :< (< left right))))
 
 (eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
+(eval-cond {:op :<, :args (list [:name :a] 3)} {:a 4})
 
-(defn eval
-  ([codes]
-   (flatten (eval codes {})))
+(defn run
+  ([str]
+   (flatten (-> str parse transform (run {}))))
   ([[code & rest] env]
    (when code
      (let [{:keys [op condition args]} code]
        (condp = op
          :define (let [[name val] args]
-                   (eval rest (assoc env name val)))
+                   (run rest (assoc env name val)))
          :if (do
                (prn :if condition args env)
                (if (eval-cond condition env)
-                 (eval rest env)))
+                 (run rest env)))
          :loop (if (number? condition)
                  (for [_ (range condition)]
-                   (eval args env))
-                 (eval rest env))
+                   (run args env))
+                 (run rest env))
          (if (contains? #{:print :move} op)
-           (concat [{:op op :args (eval-exps args env)}] (eval rest env))
-           (concat [code] (eval rest env))))))))
-
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn run [{:keys [code]}]
-  (print (parse code)))
+           (concat [{:op op :args (eval-exps args env)}] (run rest env))
+           (concat [code] (run rest env))))))))

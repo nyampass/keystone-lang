@@ -3,43 +3,37 @@
             [clojure.test :refer :all]))
 
 (testing "hello"
-  (let [res (-> (slurp "./resources/01_hello.ks") parse transform eval)]
-    (is (= res [{:op :print :args '("hello")}]))))
+  (is (= (run (slurp "./resources/01_hello.ks")) [{:op :print :args '("hello")}])))
 
 (testing "move"
-  (let [res (-> (slurp "./resources/02_move.ks") parse transform eval)]
-    (is (= res
-           [{:op :move :args '("right")} {:op :move :args '("right")} {:op :move :args '("left")} {:op :move :args '("up")} {:op :move :args '("down")}]))))
+  (is (= (run (slurp "./resources/02_move.ks"))
+         [{:op :move :args '("right")} {:op :move :args '("right")} {:op :move :args '("left")} {:op :move :args '("up")} {:op :move :args '("down")}])))
 
 (testing "variable"
-  (let [res (-> (slurp "./resources/03_variable.ks") parse transform eval)]
-    (is (= res
-           [{:op :print :args (list 1)}
-            {:op :print :args (list "def")}
-            {:op :move :args (list "left")}]))))
+  (is (= (run (slurp "./resources/03_variable.ks"))
+         [{:op :print :args (list 1)}
+          {:op :print :args (list "def")}
+          {:op :move :args (list "left")}])))
 
 (testing "loop"
-  (let [res (-> (slurp "./resources/04_loop.ks") parse transform eval)]
-    (is (= res
-           [{:op :print :args '("hoge")}
-            {:op :print :args '("hoge")}
-            {:op :print :args '("hoge")}]))))
+  (is (= (run (slurp "./resources/04_loop.ks"))
+         [{:op :print :args '("hoge")}
+          {:op :print :args '("hoge")}
+          {:op :print :args '("hoge")}])))
 
 (testing "if"
-  (let [res (-> (slurp "./resources/05_if.ks") parse transform eval)]
-    (is (= res
-           [{:op :print :args (list "abc")}]))))
+  (is (= (run (slurp "./resources/05_if.ks"))
+         [{:op :print :args (list "abc")}])))
 
 (testing "mix"
-  (let [res (-> (slurp "./resources/06_mix.ks") parse transform eval)]
-    (is (= res
-           [{:op :print :args (list "abc")}
-            {:op :print, :args (list "1: hogehoge == 1")}
-            {:op :print, :args (list "2: hogehoge > 1")}
-            {:op :print, :args (list 989)}
-            {:op :print, :args (list 989)}
-            {:op :print, :args (list "あいうえお")}
-            {:op :move, :args (list "left")}
-            {:op :print, :args (list 989)}
-            {:op :print, :args (list "あいうえお")}
-            {:op :move, :args (list "left")}]))))
+  (is (= (run (slurp "./resources/06_mix.ks"))
+         [{:op :print :args (list "abc")}
+          {:op :print, :args (list "1: hogehoge == 1")}
+          {:op :print, :args (list "2: hogehoge > 1")}
+          {:op :print, :args (list 989)}
+          {:op :print, :args (list 989)}
+          {:op :print, :args (list "あいうえお")}
+          {:op :move, :args (list "left")}
+          {:op :print, :args (list 989)}
+          {:op :print, :args (list "あいうえお")}
+          {:op :move, :args (list "left")}])))
