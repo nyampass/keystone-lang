@@ -27,7 +27,7 @@ if hogehoge == 1
   print "2: hogehoge == 1"
 end
 
-a = 1.1234
+a = 989
 print a
 
 loop 2

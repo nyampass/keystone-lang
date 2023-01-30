@@ -33,4 +33,13 @@
 (testing "mix"
   (let [res (-> (slurp "./resources/06_mix.ks") parse transform eval)]
     (is (= res
-           [{:op :print :args (list "abc")}]))))
+           [{:op :print :args (list "abc")}
+            {:op :print, :args (list "1: hogehoge == 1")}
+            {:op :print, :args (list "2: hogehoge > 1")}
+            {:op :print, :args (list 989)}
+            {:op :print, :args (list 989)}
+            {:op :print, :args (list "あいうえお")}
+            {:op :move, :args (list "left")}
+            {:op :print, :args (list 989)}
+            {:op :print, :args (list "あいうえお")}
+            {:op :move, :args (list "left")}]))))

@@ -129,11 +129,13 @@
        args))
 
 (defn eval-cond [{:keys [op args]} env]
-  (condp = op
-    :> (> (eval-exp (first args) env)
-          (eval-exp (second args) env))))
+  (let [[left right] [(eval-exp (first args) env)
+                      (eval-exp (second args) env)]]
+    (condp = op
+      :> (> left right)
+      :< (< left right))))
 
-;; (eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
+(eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
 
 (defn eval
   ([codes]
@@ -144,14 +146,17 @@
        (condp = op
          :define (let [[name val] args]
                    (eval rest (assoc env name val)))
-         :print (concat [{:op :print :args (eval-exps args env)}] (eval rest env))
-         :move (concat [{:op :move :args (eval-exps args env)}] (eval rest env))
+         :if (do
+               (prn :if condition args env)
+               (if (eval-cond condition env)
+                 (eval rest env)))
          :loop (if (number? condition)
                  (for [_ (range condition)]
                    (eval args env))
                  (eval rest env))
-         :if (concat (eval args env) (eval rest env))
-         (concat [code] (eval rest env)))))))
+         (if (contains? #{:print :move} op)
+           (concat [{:op op :args (eval-exps args env)}] (eval rest env))
+           (concat [code] (eval rest env))))))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run [{:keys [code]}]
