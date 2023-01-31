@@ -27,8 +27,7 @@
 
 (testing "mix"
   (is (= (run (slurp "./resources/06_mix.ks"))
-         [{:op :print :args (list "abc")}
-          {:op :print, :args (list "1: hogehoge == 1")}
+         [{:op :print, :args (list "1: hogehoge == 1")}
           {:op :print, :args (list "2: hogehoge > 1")}
           {:op :print, :args (list 989)}
           {:op :print, :args (list 989)}

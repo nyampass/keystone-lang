@@ -2,19 +2,18 @@
   (:require [instaparse.core :as insta]
             [clojure.core :refer [parse-long]]))
 
-
 (def parser
   (insta/parser
    "s ::= block
-  block ::= {stat}    
-  <stat> ::= <space> ( define | op | loop | functioncall | label | goto name | do block end | while exp do block end | repeat block until exp | if | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
-  <space> ::= #\"\\s*\"    
-  op ::= ( print | move ) <space> exp <space> 
-  print ::= 'print'
-  move ::= 'move'
-	define ::=  name <space> '=' <space> exp
-  loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
-  if ::= 'if' <space> exp <space> <'\n'*> block <'\n'*> <end>
+    block ::= {stat}
+    <stat> ::= <space> ( define | op | loop | functioncall | label | if | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
+    <space> ::= #\"\\s*\"
+    op ::= ( print | move ) <space> exp <space> 
+    print ::= 'print'
+    move ::= 'move'
+	  define ::=  name <space> '=' <space> exp
+    loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
+    if ::= 'if' <space> exp <space> <'\n'*> block <'\n'*> <end>
 
   goto ::= 'goto'
   do ::= 'do'
@@ -36,37 +35,21 @@
   false ::= 'false'
   not ::= 'not'
   return ::= 'return'
-
 	label ::= '::' name '::'
-  
   numeral ::= #\"\\d+\"
-
 	funcname ::= name {'.' name} [':' name]
-
 	namelist ::= name {',' name}
-
 	explist ::= exp {',' exp}
-
 	exp ::=  exp <space> binop <space> exp | unop exp | name | nil | false | true | numeral | literal-string | '...' | functiondef
- 
   literal-string ::= '\"' #\"[^\\\"]+\" '\"'
- 
   name ::= #\"[a-zA-Z]\\w*\"
- 
   functioncall ::=  name args
-
 	args ::=  '(' [explist] ')' | literal-string
-
 	functiondef ::= function funcbody
-
 	funcbody ::= '(' [parlist] ')' block end
-
 	parlist ::= namelist [',' '...'] | '...'
-
 	binop ::=  '+' | '-' | '*' | '/' | '//' | '^' | '%' | '&' | '~' | '|' | '>>' | '<<' | '..' | '<' | '<=' | '>' | '>=' | '==' | '~=' | and | or
-
 	unop ::= '-' | not | '#' | '~'"))
-
 
 (defn parse [str]
   (let [ret (parser str)]
@@ -107,6 +90,7 @@
   {:op :if :condition cond :args args})
 
 (defn transform [stats]
+  #_{:clj-kondo/ignore [:unresolved-var]}
   (insta/transform {:block (fn [& args] args)
                     :op -op
                     :define -define
@@ -117,44 +101,54 @@
                     :loop -loop
                     :if -if} stats))
 
-(defn eval-exp [arg env]
-  (if (and (vector? arg)
-           (=  (count arg) 2)
-           (= (first arg) :name))
-    ((second arg) env)
-    arg))
+(defn -eval-exp [exp env]
+  (if (and (vector? exp)
+           (=  (count exp) 2)
+           (= (first exp) :name))
+    ((second exp) env)
+    (condp = (:op exp)
+      :- (let [[left right] (:args exp)]
+           (- (-eval-exp left env) (-eval-exp right env)))
+      exp)))
 
-(defn eval-exps [args env]
-  (map #(eval-exp % env)
+(defn -eval-exps [args env]
+  (map #(-eval-exp % env)
        args))
 
-(defn eval-cond [{:keys [op args]} env]
-  (let [[left right] [(eval-exp (first args) env)
-                      (eval-exp (second args) env)]]
+(defn -cond [{:keys [op args]} env]
+  ;; (prn :eval-cond op args env)
+  (let [[left right] [(-eval-exp (first args) env)
+                      (-eval-exp (second args) env)]]
     (condp = op
       :> (> left right)
-      :< (< left right))))
+      :< (< left right)
+      :== (= left right))))
 
-(eval-cond {:op :>, :args (list [:name :a] 3)} {:a 4})
-(eval-cond {:op :<, :args (list [:name :a] 3)} {:a 4})
+;; (eval-cond {:op :< :args (list [:name :a] 3)} {:a {:op :-, :args ([:name :a] 2)}})
 
-(defn run
-  ([str]
-   (flatten (-> str parse transform (run {}))))
-  ([[code & rest] env]
-   (when code
-     (let [{:keys [op condition args]} code]
-       (condp = op
-         :define (let [[name val] args]
-                   (run rest (assoc env name val)))
-         :if (do
-               (prn :if condition args env)
-               (if (eval-cond condition env)
-                 (run rest env)))
-         :loop (if (number? condition)
-                 (for [_ (range condition)]
-                   (run args env))
-                 (run rest env))
-         (if (contains? #{:print :move} op)
-           (concat [{:op op :args (eval-exps args env)}] (run rest env))
-           (concat [code] (run rest env))))))))
+(defonce env (atom {}))
+
+(defn- -eval [[code & rest]]
+  (when code
+    (let [{:keys [op condition args]} code]
+      (condp = op
+        :define (let [[name val] args]
+                  (swap! env assoc name (-eval-exp val @env))
+                  (-eval rest))
+        :if (do
+              ;; (prn :if condition args rest @env)
+              (if (-cond condition @env)
+                (concat (-eval args) (-eval rest))
+                (-eval rest)))
+        :loop (if (number? condition)
+                (for [_ (range condition)]
+                  (-eval args))
+                (-eval rest))
+        (if (contains? #{:print :move} op)
+          (concat [{:op op :args (-eval-exps args @env)}] (-eval rest))
+          (concat [code] (-eval rest)))))))
+
+(defn run [str]
+  (reset! env {})
+  (flatten (-> str parse transform -eval)))
+

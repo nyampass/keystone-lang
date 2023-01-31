@@ -32,5 +32,6 @@
            [{:op :define :args (list :a 5)}
             {:op :if :condition {:op :> :args (list [:name :a] 3)} :args
              (list {:op :print :args (list "abc")}
-                   {:op :define :args (list :a {:op :- :args (list [:name :a] 2)})})}]))))
-
+                   {:op :define :args (list :a {:op :- :args (list [:name :a] 2)})})}
+            {:op :if :condition {:op :< :args (list [:name :a] 3)} :args
+             (list {:op :print :args (list "def")})}]))))
