@@ -3,17 +3,17 @@
             [clojure.core :refer [parse-long]]))
 
 (def parser
-  (insta/parser
-   "s ::= block
-    block ::= {stat}
-    <stat> ::= <space> ( define | op | loop | functioncall | label | if | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
-    <space> ::= #\"\\s*\"
-    op ::= ( print | move ) <space> exp <space> 
-    print ::= 'print'
-    move ::= 'move'
-	  define ::=  name <space> '=' <space> exp
-    loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
-    if ::= 'if' <space> exp <space> <'\n'*> block <'\n'*> <end>
+  (insta/parser "
+  s ::= block
+  block ::= {stat}
+  <stat> ::= <space> ( define | op | loop | functioncall | label | if | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
+  <space> ::= #\"\\s*\"
+  op ::= ( print | move ) <space> exp <space> 
+  print ::= 'print'
+  move ::= 'move'
+  define ::=  name <space> '=' <space> exp
+  loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
+  if ::= 'if' <space> exp <space> <'\n'*> block <'\n'*> <end>
 
   goto ::= 'goto'
   do ::= 'do'
@@ -40,7 +40,7 @@
 	funcname ::= name {'.' name} [':' name]
 	namelist ::= name {',' name}
 	explist ::= exp {',' exp}
-	exp ::=  exp <space> binop <space> exp | unop exp | name | nil | false | true | numeral | literal-string | '...' | functiondef
+	exp ::=  exp <space> binop <space> exp | unop exp | '(' exp ')' | name | nil | false | true | numeral | literal-string | '...' | functiondef
   literal-string ::= '\"' #\"[^\\\"]+\" '\"'
   name ::= #\"[a-zA-Z]\\w*\"
   functioncall ::=  name args
@@ -48,7 +48,7 @@
 	functiondef ::= function funcbody
 	funcbody ::= '(' [parlist] ')' block end
 	parlist ::= namelist [',' '...'] | '...'
-	binop ::=  '+' | '-' | '*' | '/' | '//' | '^' | '%' | '&' | '~' | '|' | '>>' | '<<' | '..' | '<' | '<=' | '>' | '>=' | '==' | '~=' | and | or
+	binop ::=  '+' | '-' | '*' | '/' | '//' | '^' | '%' | '&' | '~' | '|' | '>>' | '<<' | '..' | '<' | '<=' | '>' | '>=' | '==' | '!=' |  and | or
 	unop ::= '-' | not | '#' | '~'"))
 
 (defn parse [str]
