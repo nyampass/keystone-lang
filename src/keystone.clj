@@ -40,7 +40,7 @@
 	funcname ::= name {'.' name} [':' name]
 	namelist ::= name {',' name}
 	explist ::= exp {',' exp}
-	exp ::=  exp <space> binop <space> exp | unop exp | '(' exp ')' | name | nil | false | true | numeral | literal-string | '...' | functiondef
+	exp ::=  exp <space> binop <space> exp | unop exp | <'('> exp <')'> | name | nil | false | true | numeral | literal-string | '...' | functiondef
   literal-string ::= '\"' #\"[^\\\"]+\" '\"'
   name ::= #\"[a-zA-Z]\\w*\"
   functioncall ::=  name args
