@@ -28,12 +28,12 @@
     (is (= l2 {:op :print :args (list {:op :-, :args (list {:op :*, :args (list 3 4)} {:op :*, :args (list 2 8)})})}))
     (is (= l3 {:op :print :args (list {:op :==, :args (list 1 2)})}))
     (is (= l4 {:op :print :args (list {:op :==, :args (list 1 1)})}))
-    (is (= l5 {:op :print :args (list [:true "true"])}))
-    (is (= l6 {:op :print :args (list [:false "false"])}))
-    (is (= l7 {:op :print :args (list {:op nil, :args (list 1 2)})}))
-    (is (= l8 {:op :print :args (list {:op nil, :args (list 2 [:false "false"])})}))
-    (is (= l9 {:op :print :args (list {:op nil, :args (list {:op :!=, :args (list 1 2)} {:op :==, :args (list 3 3)})})}))
-    (is (= l10 {:op :print :args (list {:op nil, :args (list {:op :!=, :args (list 1 2)} {:op :==, :args (list 3 3)})})}))))
+    (is (= l5 {:op :print :args (list true)}))
+    (is (= l6 {:op :print :args (list false)}))
+    (is (= l7 {:op :print :args (list {:op :and, :args (list 1 2)})}))
+    (is (= l8 {:op :print :args (list {:op :and, :args (list 2 false)})}))
+    (is (= l9 {:op :print :args (list {:op :and, :args (list {:op :!=, :args (list 1 2)} {:op :==, :args (list 3 3)})})}))
+    (is (= l10 {:op :print :args (list {:op :or, :args (list {:op :!=, :args (list 1 2)} {:op :==, :args (list 3 3)})})}))))
 
 (testing "loop"
   (let [stats (parse (slurp "./resources/loop.ks"))]
@@ -41,11 +41,11 @@
            [{:op :loop :condition 3 :args (list {:op :print :args '("hoge")})}]))))
 
 (testing "if"
-  (let [stats (parse (slurp "./resources/if.ks"))]
-    (is (= (transform stats)
-           [{:op :define :args (list :a 5)}
-            {:op :if :condition {:op :> :args (list [:name :a] 3)} :args
-             (list {:op :print :args (list "abc")}
-                   {:op :define :args (list :a {:op :- :args (list [:name :a] 2)})})}
-            {:op :if :condition {:op :< :args (list [:name :a] 3)} :args
-             (list {:op :print :args (list "def")})}]))))
+  (let [stats (parse (slurp "./resources/if.ks"))
+        [l1 l2 l3] (transform stats)]
+    (is (= l1 {:op :define :args (list :a 5)}))
+    (is (= l2 {:op :if :condition {:op :> :args (list [:name :a] 3)} :args
+               (list {:op :print :args (list "abc")}
+                     {:op :define :args (list :a {:op :- :args (list [:name :a] 2)})})}))
+    (is (= l3 {:op :if :condition {:op :< :args (list [:name :a] 3)} :args
+               (list {:op :print :args (list "def")})}))))

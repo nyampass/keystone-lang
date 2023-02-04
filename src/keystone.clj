@@ -57,7 +57,7 @@
       (let [[_ & [stats]] ret]
         stats)
       (let [failure (insta/get-failure ret)]
-        (throw  (ex-info (prn-str failure) {:failure ret}))))))
+        (throw (ex-info (prn-str failure) {:failure ret}))))))
 
 (defn -op [[op-name] & args]
   {:op op-name :args args})
@@ -69,13 +69,27 @@
 (defn -name [& args]
   [:name (keyword (first args))])
 
+(defn -binop [op]
+  [:binop (keyword (if (sequential? op)
+                     (second op)
+                     op))])
+
 (defn -exp [& args]
   (if (= (count args) 1)
-    (first args)
+    (let [v (first args)]
+      (if (sequential? v)
+        (condp = (first v)
+          :true true :false false :nil nil v)
+        v))
     (if (and (= (count args) 3)
              (= (-> args second first) :binop))
-      {:op (-> args second second keyword) :args (list (first args) (nth args 2))}
+      {:op (-> args second second) :args (list (first args) (nth args 2))}
       {:exp args})))
+
+(-exp [:false "false"])
+(-exp 2)
+
+;; (-exp {:op :!=, :args (list 1 2)} [:binop [:and "and"]] {:op :==, :args (list 3 3)})
 
 (defn -literal-string [& [_ args _]]
   args)
@@ -91,15 +105,18 @@
 
 (defn transform [stats]
   #_{:clj-kondo/ignore [:unresolved-var]}
-  (insta/transform {:block (fn [& args] args)
-                    :op -op
-                    :define -define
-                    :name -name
-                    :exp -exp
-                    :literal-string -literal-string
-                    :numeral -numeral
-                    :loop -loop
-                    :if -if} stats))
+  (insta/transform
+   {:block (fn [& args] args)
+    :op -op
+    :define -define
+    :name -name
+    :binop -binop
+    :exp -exp
+    :literal-string -literal-string
+    :numeral -numeral
+    :loop -loop
+    :if -if}
+   stats))
 
 (defn -eval-exp [exp env]
   (if (and (vector? exp)
@@ -116,7 +133,6 @@
        args))
 
 (defn -cond [{:keys [op args]} env]
-  ;; (prn :eval-cond op args env)
   (let [[left right] [(-eval-exp (first args) env)
                       (-eval-exp (second args) env)]]
     (condp = op
@@ -135,11 +151,9 @@
         :define (let [[name val] args]
                   (swap! env assoc name (-eval-exp val @env))
                   (-eval rest))
-        :if (do
-              ;; (prn :if condition args rest @env)
-              (if (-cond condition @env)
-                (concat (-eval args) (-eval rest))
-                (-eval rest)))
+        :if (if (-cond condition @env)
+              (concat (-eval args) (-eval rest))
+              (-eval rest))
         :loop (if (number? condition)
                 (for [_ (range condition)]
                   (-eval args))
