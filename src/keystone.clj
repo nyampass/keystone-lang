@@ -119,14 +119,16 @@
    stats))
 
 (defn -eval-exp [exp env]
-  (if (and (vector? exp)
-           (=  (count exp) 2)
-           (= (first exp) :name))
-    ((second exp) env)
-    (condp = (:op exp)
-      :- (let [[left right] (:args exp)]
-           (- (-eval-exp left env) (-eval-exp right env)))
-      exp)))
+  ;; (prn :-eval-exp exp env)
+  (cond
+    (and (vector? exp)
+         (=  (count exp) 2)
+         (= (first exp) :name)) ((second exp) env)
+    (#{:- :+ :*} (:op exp)) (let [[left right] (:args exp)]
+                              (({:- - :+ + :* *} (:op exp)) (-eval-exp left env) (-eval-exp right env)))
+    (= :== (:op exp)) (let [[left right] (:args exp)]
+                        (boolean (== left right)))
+    :else exp))
 
 (defn -eval-exps [args env]
   (map #(-eval-exp % env)
@@ -164,5 +166,4 @@
 
 (defn run [str]
   (reset! env {})
-  (flatten (-> str parse transform -eval)))
-
+  (-> str parse transform -eval flatten))

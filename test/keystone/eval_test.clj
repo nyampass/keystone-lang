@@ -15,6 +15,19 @@
           {:op :print :args (list "def")}
           {:op :move :args (list "left")}])))
 
+(testing "exp"
+  (is (= (run (slurp "./resources/exp.ks"))
+         [{:op :print :args '(3)}
+          {:op :print :args '(-4)}
+          {:op :print :args '(false)}
+          {:op :print :args '(true)}
+          {:op :print :args '(true)}
+          {:op :print :args '(false)}
+          {:op :print :args '(true)}
+          {:op :print :args '(false)}
+          {:op :print :args '(true)}
+          {:op :print :args '(true)}])))
+
 (testing "loop"
   (is (= (run (slurp "./resources/loop.ks"))
          [{:op :print :args '("hoge")}
