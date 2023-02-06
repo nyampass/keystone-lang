@@ -36,7 +36,7 @@
   not ::= 'not'
   return ::= 'return'
 	label ::= '::' name '::'
-  numeral ::= #\"\\d+\"
+  numeral ::= #\"\\-?\\d+\"
 	funcname ::= name {'.' name} [':' name]
 	namelist ::= name {',' name}
 	explist ::= exp {',' exp}
@@ -86,9 +86,6 @@
       {:op (-> args second second) :args (list (first args) (nth args 2))}
       {:exp args})))
 
-(-exp [:false "false"])
-(-exp 2)
-
 ;; (-exp {:op :!=, :args (list 1 2)} [:binop [:and "and"]] {:op :==, :args (list 3 3)})
 
 (defn -literal-string [& [_ args _]]
@@ -118,16 +115,27 @@
     :if -if}
    stats))
 
+(defn -eval-binop [op-keyword [left right]]
+  (prn :-exp-binop op-keyword left right)
+  (if-let [op ({:+ + :- - :* * :> > :< <
+                :== = :!= not=} op-keyword)]
+    (cond-> (op left right)
+      (#{> < = not=} op) boolean)
+    (condp = op-keyword
+      :and (boolean (and left right))
+      :or (boolean (or left right))
+      nil)))
+
 (defn -eval-exp [exp env]
   ;; (prn :-eval-exp exp env)
   (cond
     (and (vector? exp)
          (=  (count exp) 2)
-         (= (first exp) :name)) ((second exp) env)
-    (#{:- :+ :*} (:op exp)) (let [[left right] (:args exp)]
-                              (({:- - :+ + :* *} (:op exp)) (-eval-exp left env) (-eval-exp right env)))
-    (= :== (:op exp)) (let [[left right] (:args exp)]
-                        (boolean (== left right)))
+         (= (first exp) :name))
+    ((second exp) env)
+    (:op exp)
+    (let [[left right] (:args exp)]
+      (-eval-binop (:op exp) [(-eval-exp left env) (-eval-exp right env)]))
     :else exp))
 
 (defn -eval-exps [args env]

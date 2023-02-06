@@ -16,17 +16,17 @@
           {:op :move :args (list "left")}])))
 
 (testing "exp"
-  (is (= (run (slurp "./resources/exp.ks"))
-         [{:op :print :args '(3)}
-          {:op :print :args '(-4)}
-          {:op :print :args '(false)}
-          {:op :print :args '(true)}
-          {:op :print :args '(true)}
-          {:op :print :args '(false)}
-          {:op :print :args '(true)}
-          {:op :print :args '(false)}
-          {:op :print :args '(true)}
-          {:op :print :args '(true)}])))
+  (let [[l1 l2 l3 l4 l5 l6 l7 l8 l9 l10] (run (slurp "./resources/exp.ks"))]
+    (is (= l1 {:op :print :args '(3)}))
+    (is (= l2 {:op :print :args '(-4)}))
+    (is (= l3 {:op :print :args '(false)}))
+    (is (= l4 {:op :print :args '(true)}))
+    (is (= l5 {:op :print :args '(true)}))
+    (is (= l6 {:op :print :args '(false)}))
+    (is (= l7 {:op :print :args '(true)}))
+    (is (= l8 {:op :print :args '(false)}))
+    (is (= l9 {:op :print :args '(true)}))
+    (is (= l10 {:op :print :args '(true)}))))
 
 (testing "loop"
   (is (= (run (slurp "./resources/loop.ks"))
