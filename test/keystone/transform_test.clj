@@ -1,5 +1,5 @@
 (ns keystone.transform-test
-  (:require [keystone :refer :all]
+  (:require [keystone.core :refer :all]
             [clojure.test :refer :all]))
 
 (testing "hello"

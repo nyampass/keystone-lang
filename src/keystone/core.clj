@@ -1,6 +1,8 @@
-(ns keystone
+(ns keystone.core
   (:require [instaparse.core :as insta]
-            [clojure.core :refer [parse-long]]))
+            [clojure.core :refer [parse-long]]
+            [ring.adapter.jetty9 :as jetty]
+            [clojure.data.json :as json]))
 
 (def parser
   (insta/parser "
@@ -152,26 +154,41 @@
 
 ;; (eval-cond {:op :< :args (list [:name :a] 3)} {:a {:op :-, :args ([:name :a] 2)}})
 
-(defonce env (atom {}))
-
-(defn- -eval [[code & rest]]
+(defn- -eval [[code & rest] env]
   (when code
     (let [{:keys [op condition args]} code]
       (condp = op
         :define (let [[name val] args]
                   (swap! env assoc name (-eval-exp val @env))
-                  (-eval rest))
+                  (-eval rest env))
         :if (if (-cond condition @env)
-              (concat (-eval args) (-eval rest))
-              (-eval rest))
+              (concat (-eval args env) (-eval rest  env))
+              (-eval rest env))
         :loop (if (number? condition)
                 (for [_ (range condition)]
-                  (-eval args))
-                (-eval rest))
+                  (-eval args env))
+                (-eval rest env))
         (if (contains? #{:print :move} op)
-          (concat [{:op op :args (-eval-exps args @env)}] (-eval rest))
-          (concat [code] (-eval rest)))))))
+          (concat [{:op op :args (-eval-exps args @env)}] (-eval rest env))
+          (concat [code] (-eval rest env)))))))
 
 (defn run [str]
-  (reset! env {})
-  (-> str parse transform -eval flatten))
+  (let [env (atom {})]
+    (prn (-> str parse))
+    (-> str parse transform (-eval env) flatten)))
+
+(def api-key (System/getenv "api-key"))
+
+(defn ring-handler
+  [{:keys [request-method uri query-string body]}]
+  (prn [request-method uri query-string "a\n2"])
+  (Thread/sleep 10000)
+  (if (and (= request-method :post)
+           (= uri "/api/eval")
+           (= query-string (str "api-key=" api-key)))
+    {:status 200
+     :body (json/write-str (run (slurp body)))}
+    {:status 404}))
+
+(defn -main [& _args]
+  (jetty/run-jetty #'ring-handler {:port 8000 :join? false}))
