@@ -182,8 +182,6 @@
 
 (defn ring-handler
   [{:keys [request-method uri query-string body]}]
-  (prn [request-method uri query-string "a\n2"])
-  (Thread/sleep 10000)
   (if (and (= request-method :post)
            (= uri "/api/eval")
            (= query-string (str "api-key=" api-key)))
@@ -192,4 +190,5 @@
     {:status 404}))
 
 (defn -main [& _args]
-  (jetty/run-jetty #'ring-handler {:port 8000 :join? false}))
+  (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))]
+    (jetty/run-jetty #'ring-handler {:port port :join? false})))
