@@ -2,7 +2,8 @@
   (:require [instaparse.core :as insta]
             [clojure.core :refer [parse-long]]
             [ring.adapter.jetty9 :as jetty]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json])
+  (:gen-class))
 
 (def parser
   (insta/parser "
