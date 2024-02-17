@@ -1,0 +1,6 @@
+turn "left"
+turn "right"
+turn "forward"
+turn "left"
+turn "left"
+turn "right"

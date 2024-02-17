@@ -1,0 +1,6 @@
+move "right"
+move "test"
+move "left"
+move "up"
+move "down"
+move "back"
