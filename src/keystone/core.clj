@@ -11,9 +11,10 @@
   block ::= {stat}
   <stat> ::= <space> ( define | op | loop | functioncall | label | if | for name '=' exp ',' exp [',' exp] do block end | for namelist in explist do block end | function funcname funcbody | local function name funcbody | local namelist ['=' explist] ) <'\n'*>
   <space> ::= #\"\\s*\"
-  op ::= ( print | move ) <space> exp <space> 
+  op ::= ( print | move | turn ) <space> exp <space> 
   print ::= 'print'
   move ::= 'move'
+  turn ::= 'turn'
   define ::=  name <space> '=' <space> exp
   loop ::= 'loop' <space> exp <space> <'\n'*> block <'\n'*> <end>
   if ::= 'if' <space> exp <space> <'\n'*> block <'\n'*> <end>
@@ -169,7 +170,7 @@
                 (for [_ (range condition)]
                   (-eval args env))
                 (-eval rest env))
-        (if (contains? #{:print :move} op)
+        (if (contains? #{:print :move :turn} op)
           (concat [{:op op :args (-eval-exps args @env)}] (-eval rest env))
           (concat [code] (-eval rest env)))))))
 
