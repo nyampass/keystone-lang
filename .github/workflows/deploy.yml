@@ -43,4 +43,4 @@ jobs:
             --allow-unauthenticated \
             --quiet \
             --set-env-vars=ENV=PRODUCTION \
-            --set-env-vars=ENV=$API_KEY
+            --set-env-vars=api-key=$API_KEY
