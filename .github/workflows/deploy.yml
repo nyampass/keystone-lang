@@ -10,6 +10,7 @@ env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: ${{ secrets.GCP_REGION }}
   IMAGE: asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.SERVICE_NAME }}:${{ github.sha }}
+  API_KEY: ${{ secrets.API_KEY }}
 
 jobs:
   deploy-to-cloud-run:
@@ -34,11 +35,12 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-            gcloud run deploy $SERVICE_NAME \
-              --image $IMAGE \
-              --project $GCP_PROJECT_ID \
-              --region $GCP_REGION \
-              --platform=managed \
-              --allow-unauthenticated \
-              --quiet \
-              --set-env-vars=ENV=PRODUCTION
+          gcloud run deploy $SERVICE_NAME \
+            --image $IMAGE \
+            --project $GCP_PROJECT_ID \
+            --region $GCP_REGION \
+            --platform=managed \
+            --allow-unauthenticated \
+            --quiet \
+            --set-env-vars=ENV=PRODUCTION \
+            --set-env-vars=ENV=$API_KEY
