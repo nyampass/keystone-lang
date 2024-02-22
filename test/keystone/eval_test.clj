@@ -5,9 +5,17 @@
 (testing "hello"
   (is (= (run (slurp "./resources/hello.ks")) [{:op :print :args '("hello")}])))
 
+(testing "move2"
+  (is (= (run (slurp "./resources/move2.ks")) 
+      [{:op :move :args '("right")} {:op :move :args '("test")} {:op :move :args '("left")} {:op :move :args '("up")} {:op :move :args '("down")} {:op :move :args '("back")}])))
+
 (testing "move"
   (is (= (run (slurp "./resources/move.ks"))
-         [{:op :move :args '("right")} {:op :move :args '("right")} {:op :move :args '("left")} {:op :move :args '("up")} {:op :move :args '("down")}])))
+        [{:op :move :args '("right")} {:op :move :args '("right")} {:op :move :args '("left")} {:op :move :args '("up")} {:op :move :args '("down")}])))
+
+(testing "turn"
+  (is (= (run (slurp "./resources/turn.ks"))
+        [{:op :turn :args '("left")} {:op :turn :args '("right")} {:op :turn :args '("forward")} {:op :turn :args '("left")} {:op :turn :args '("left")} {:op :turn :args '("right")}])))
 
 (testing "variable"
   (is (= (run (slurp "./resources/variable.ks"))
