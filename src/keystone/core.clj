@@ -174,22 +174,29 @@
           (concat [{:op op :args (-eval-exps args @env)}] (-eval rest env))
           (concat [code] (-eval rest env)))))))
 
-(defn run [str]
+(defn run [code]
   (let [env (atom {})]
-    (prn (-> str parse))
-    (-> str parse transform (-eval env) flatten)))
+    (prn (-> code parse))
+    (-> code parse transform (-eval env) flatten)))
 
 (def api-key (System/getenv "api-key"))
 
-(defn ring-handler
-  [{:keys [request-method uri query-string body]}]
+(defn authorize [{:keys [headers]}]
+  (let [request-api-key (:api-key headers)]
+    (when api-key
+      (when (not= api-key request-api-key)
+        {:status 401 :body "unauthorized"}))))
+
+(defn handler
+  [{:keys [request-method uri body] :as req}]
+  (prn request-method uri)
   (if (and (= request-method :post)
-           (= uri "/api/eval")
-           (= query-string (str "api-key=" api-key)))
-    {:status 200
-     :body (json/write-str (run (slurp body)))}
-    {:status 404}))
+           (= uri "/api/eval"))
+    (or (authorize req)
+        {:status 200
+         :body (json/write-str (run (slurp body)))})
+    {:status 404 :body "not found"}))
 
 (defn -main [& _args]
   (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))]
-    (jetty/run-jetty #'ring-handler {:port port :join? false})))
+    (jetty/run-jetty #'handler {:host "0.0.0.0" :port port :join? false})))
